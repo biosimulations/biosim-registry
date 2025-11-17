@@ -16,8 +16,13 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "jinja2>=3.1.6",
+    "pandas>=2.3.3",
+    "process-bigraph>=0.0.46",
     "pydantic>=2.12.3",
+    "python-libsbml>=5.20.5",
     "spython>=0.3.14",
+    "vivarium-interface>=0.0.5",
 ]
 
 [project.urls]
