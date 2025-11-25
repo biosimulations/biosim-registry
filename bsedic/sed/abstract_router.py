@@ -37,6 +37,3 @@ class LocalRouter(AbstractRouter):
                 return n
 
         raise NotImplementedError("No implementation for abstract entity to implement")
-
-    def _get_implementations(self, abstract_representation: ExperimentNode):
-        pass

@@ -2,6 +2,7 @@ import typing
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 from process_bigraph import Step
 
 from bsedic.pbif.tools.stats import mean_squared_error_dict
@@ -15,12 +16,12 @@ class ComparisonTool(Step):
         "columns_of_interest": "list[string]",
     }
 
-    def inputs(self):
+    def inputs(self) -> dict[str, str]:
         return {
             "results": "numeric_results",
         }
 
-    def outputs(self):
+    def outputs(self) -> dict[str, str]:
         return {"comparison_result": "map[map[map[float]]]"}
 
 
@@ -33,14 +34,14 @@ class ComparisonTool(Step):
 
 
 class MSEComparison(ComparisonTool):
-    def update(self, state: dict[str, Any], interval=None) -> dict[str, Any]:
+    def update(self, state: dict[str, Any], interval: Any = None) -> dict[str, Any]:
         results_map = state.get("results", {})
         if not isinstance(results_map, dict) or len(results_map) < 2:
             raise ValueError("CompareResults.update expects inputs['results'] to be a dict with at least two entries.")
         engine_ids = list(results_map.keys())
 
         # Extract species time-series per engine
-        engine_to_species = {}
+        engine_to_species: dict[str, dict[str, NDArray[np.float64]]] = {}
         for eid in engine_ids:
             column_to_row = {}
             engines_results = results_map[eid]

@@ -1,12 +1,13 @@
 import typing
 
 import numpy as np
+from numpy.typing import NDArray
 from process_bigraph import Step
 
 # ruff: noqa: TRY003
 
 
-def mean_squared_error_dict(a: dict[str, list[float]], b: dict[str, list[float]]) -> float:
+def mean_squared_error_dict(a: dict[str, NDArray[np.float64]], b: dict[str, NDArray[np.float64]]) -> float:
     sum_sq = 0.0
     count = 0
 
@@ -47,17 +48,17 @@ class StatsTool(Step):
         "ignore_nans": "boolean",
     }
 
-    def inputs(self):
+    def inputs(self) -> dict[str, str]:
         return {
             "compute_store": "array",
         }
 
-    def outputs(self):
+    def outputs(self) -> dict[str, str]:
         return {"stats_result": "array"}
 
 
 class SumOfSquaresTool(StatsTool):
-    def update(self, state, interval=None):
+    def update(self, state: dict[str, typing.Any], interval: typing.Any = None) -> dict[str, typing.Any]:
         compute_store = np.array(state["compute_store"])
         row, col = compute_store.shape
         result = np.empty((row, col))
