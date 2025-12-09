@@ -12,24 +12,6 @@ class StepBuilder(Step):
 class ComparisonProcess(Process):
     pass
 
-
-# def add_comparison_step(viv: Vivarium, edge_id_1: str, edge_id_2: str) -> Vivarium:
-#     name = f'compare_{edge_id_1}_to_{edge_id_2}'
-#     comparison_process = {
-#         'name': name,
-#         'process_id': 'Comparison',
-#         'config': {'ignore_nans': 'false'},
-#         'inputs': {'left': ['array'],
-#                    'right': ['array']},
-#         'outputs': {'comparison_result': ['array']}
-#     }
-#     viv.add_process(**comparison_process)
-#     viv.connect_process(name=name,
-#                         inputs={"left": {edge_id_1: "result"}, "right": {edge_id_2: "result"}},
-#                         outputs={"comparison_result": ['array']})
-#     return viv
-
-
 class CompositeOverrides:
     pass
 
@@ -58,6 +40,34 @@ class CompositeBuilder:
         step_key = f"{step_name}_{self.step_number}"
         self.step_number += 1
         return step_key
+
+    def add_step(self, address: str,
+                 config: dict[str, str | int],
+                 inputs: dict[str, Any],
+                 outputs: dict[str, Any]) -> None:
+        new_step_key = self._allocate_step_key(address)
+        self.state[new_step_key] = {
+            "_type": "step",
+            "address": address,
+            "config": config,
+            "inputs": inputs,
+            "outputs": outputs
+        }
+
+
+    def add_comparison_step(self, comparison_name: str, store_with_values: list[str]) -> None:
+        comparison_step_key = self._allocate_step_key("comparison_step")
+        self.state[comparison_step_key] = {
+            "_type": "step",
+            "address": "local:bsedic.pbif.tools.comparison.MSEComparison",
+            "config": {},
+            "inputs": {
+                "results": store_with_values,
+            },
+            "outputs": {
+                "comparison": ["comparison_result", comparison_name],
+            }
+        }
 
     def _deconstruct_dictionary(
         self, base_path: list[str], dict_values: dict[str, Any], composite_type: CompositeType
