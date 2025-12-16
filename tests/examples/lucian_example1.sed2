@@ -55,17 +55,17 @@
             "sim1Report": {
                 outputs: "tasks:sim1"
                 filename: "sim1.csv" # Maybe?  Some people don't like this in SED.
-                file_format: CSV
+                file_format: "http://purl.org/NET/mediatypes/text/csv"
             },
             "sim2Report": {
                 outputs: "tasks:sim2"
                 filename: "sim2.csv" # Maybe?  Some people don't like this in SED.
-                file_format: CSV
+                file_format: "http://purl.org/NET/mediatypes/text/csv"
             },
             "comparisonReport": {
                 outputs: "tasks:compare"
                 filename: "all_sums_of_squares.csv",
-                file_format: "CSV"
+                file_format: "http://purl.org/NET/mediatypes/text/csv"
             },
             "comparisonSummary": {
                 outputs: "tasks:compare_summary",

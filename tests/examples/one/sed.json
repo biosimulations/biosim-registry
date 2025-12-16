@@ -2,14 +2,20 @@
   "inputs": {
     "models": {
       "model1": {
-        "location": "path/to/my/model.xml",
+        "location": "./example1.xml",
         "language": "urn:sedml:language:sbml"
       }
     },
     "data": {
       "experiment1": {
-        "location": "path/to/data.csv",
-        "format": "http://purl.org/NET/mediatypes/text/csv"
+        "location": "./experimental_data.csv",
+        "format": "http://purl.org/NET/mediatypes/text/csv",
+        "parameters": {
+          "organization": "column-based",
+          "ncols": 3,
+          "nrows": 52,
+          "units": ["seconds", "mMol", "mMol"]
+        }
       }
     }
   },
@@ -20,18 +26,18 @@
       "model": "model1",
       "initialTime": 0,
       "outputStartTime": 0,
-      "outputEndTime": 500,
-      "numberOfSteps": 1000,
-      "outputVariables": ["time", "S1", "S2", "compartment"]
+      "outputEndTime": 20,
+      "numberOfSteps": 50,
+      "outputVariables": ["time", "S1", "S2"]
     },
     "sim2": {
       "_type": "uniformTimeCourse",
       "model": "model1",
       "initialTime": 0,
       "outputStartTime": 0,
-      "outputEndTime": 500,
-      "numberOfSteps": 1000,
-      "outputVariables": ["time", "S1", "S2", "compartment"]
+      "outputEndTime": 20,
+      "numberOfSteps": 50,
+      "outputVariables": ["time", "S1", "S2"]
     },
     "sim1_sim2_compare": {
       "_type": "calculation",
@@ -64,8 +70,16 @@
         "file_format": "http://purl.org/NET/mediatypes/text/csv"
       },
       "comparisonReport": {
-        "outputs": "processes:compare",
-        "filename": "all_sums_of_squares.csv",
+        "dataSets": {
+          "time": "processes:sim1['time']",
+          "S1_ssq_sim1sim2": "processes:sim1_sim2_compare['S1']",
+          "S1_ssq_sim1exp": "processes:sim1_exp_compare['S1']",
+          "S1_ssq_sim2exp": "processes:sim2_exp_compare['S1']",
+          "S2_ssq_sim1sim2": "processes:sim1_sim2_compare['S2']",
+          "S2_ssq_sim1exp": "processes:sim1_exp_compare['S2']",
+          "S2_ssq_sim2exp": "processes:sim2_exp_compare['S2']"
+        },
+        "filename": "all_comparisons.csv",
         "file_format": "http://purl.org/NET/mediatypes/text/csv"
       },
       "comparisonSummary": {
@@ -74,6 +88,7 @@
     },
     "plots": {
       "Fig1": {
+        "_type": "Plot2D",
         "label": "Figure 1",
         "xAxis": {
           "label": "Time"
@@ -83,29 +98,29 @@
         },
         "curves": {
           "Sim1_S1": {
-            "x": "processes:sim1:time",
-            "y": "processes:sim1:S1"
+            "x": "processes:sim1['time']",
+            "y": "processes:sim1['S1']"
           },
           "Sim1_S2": {
-            "x": "processes:sim1:time",
-            "y": "processes:sim1:S2"
+            "x": "processes:sim1['time']",
+            "y": "processes:sim1:['S2']"
           },
           "Sim2_S1": {
-            "x": "processes:sim1:time",
-            "y": "processes:sim2:S1"
+            "x": "processes:sim1['time']",
+            "y": "processes:sim2['S1']"
           },
           "Sim2_S2": {
-            "x": "processes:sim1:time",
-            "y": "processes:sim2:S2"
+            "x": "processes:sim1['time']",
+            "y": "processes:sim2:['S2']"
           },
           "S1_data": {
-            "x": "experiment1:time",
-            "y": "experiment1:S1",
+            "x": "experiment1['time']",
+            "y": "experiment1['S1']",
             "style": "points_only"
           },
           "S2_data": {
-            "x": "experiment1:time",
-            "y": "experiment1:S2",
+            "x": "experiment1['time']",
+            "y": "experiment1['S2']",
             "style": "points_only"
           }
         }
