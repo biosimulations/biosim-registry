@@ -13,9 +13,9 @@
       "_type": "parameterScan",
       "model": "model1",
       "scannedVariable": "k1",
-      "initialValue": 0.01,
+      "initialValue": 0.1,
       "finalValue": 1.5,
-      "numberOfSteps": 149,
+      "interval": 0.1,
       "scale": "linear",
       "outputRange": "true"
     },
