@@ -1,6 +1,6 @@
 import os
 
-from bsedic.pbif.tools.builder import CompositeBuilder
+from bsedic.utils.builder import CompositeBuilder
 
 
 def comparison_builder(builder: CompositeBuilder) -> None:
