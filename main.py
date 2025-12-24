@@ -2,7 +2,7 @@ import argparse
 import os
 import sys
 
-from bsedic.execution import execute_bsedic
+from bsedic.containerization.execution import generate_container_def_file
 from bsedic.utils.input_types import ContainerizationEngine, ContainerizationTypes, ProgramArguments
 
 
@@ -127,7 +127,7 @@ def _determine_containerization(args: argparse.Namespace) -> tuple[Containerizat
 def main():
     prog_args = get_program_arguments()
     try:
-        execute_bsedic(prog_args)
+        generate_container_def_file(prog_args)
     except Exception as e:
         print(e, file=sys.stderr)
 

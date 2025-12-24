@@ -18,7 +18,7 @@ from bsedic.utils.input_types import (
 )
 
 
-def execute_bsedic(
+def generate_container_def_file(
     original_program_arguments: ProgramArguments,
 ) -> tuple[ContainerizationFileRepr, ExperimentPrimaryDependencies]:
     new_input_file_path: str

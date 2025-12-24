@@ -4,7 +4,7 @@ import zipfile
 
 import pytest
 
-from bsedic.execution import execute_bsedic as run_bsedic
+from bsedic.containerization.execution import generate_container_def_file as run_bsedic
 from bsedic.utils.input_types import ContainerizationEngine, ContainerizationTypes, ProgramArguments
 
 fake_input_file = """
