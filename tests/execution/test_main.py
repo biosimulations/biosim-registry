@@ -15,8 +15,9 @@ def test_run_experiment(comparison_document: dict[Any, Any], fully_registered_co
         comp.save(filename="input.pbif", outdir=tmpdir)
 
         os.mkdir(f"{tmpdir}/output")
-        program_arguments = PBProgramArguments(input_file=f"{tmpdir}/input.pbif", output_dir=f"{tmpdir}/output",
-                                               verbose=True, interval=1)
+        program_arguments = PBProgramArguments(
+            input_file=f"{tmpdir}/input.pbif", output_dir=f"{tmpdir}/output", verbose=True, interval=1
+        )
         run_experiment(program_arguments)
 
         result: dict[Any, Any] | None = None
@@ -35,5 +36,3 @@ def test_run_experiment(comparison_document: dict[Any, Any], fully_registered_co
             else:
                 assert float(comparison_result[key][compared_to]) < 1e-6
                 assert float(comparison_result[key][compared_to]) != 0
-
-

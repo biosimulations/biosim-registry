@@ -124,7 +124,7 @@ def _determine_containerization(args: argparse.Namespace) -> tuple[Containerizat
     return containerization_type, containerization_engine
 
 
-def main():
+def main() -> None:
     prog_args = get_program_arguments()
     try:
         generate_container_def_file(prog_args)

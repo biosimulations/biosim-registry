@@ -67,10 +67,11 @@ def get_pb_schema(prog_args: PBProgramArguments, working_dir: str) -> dict[Any, 
         err = f"Could not find any PBIF or JSON file in or at `{prog_args.input_file}`."
         raise FileNotFoundError(err)
     with open(input_file) as input_data:
-        return json.load(input_data)
+        result: dict[Any, Any] = json.load(input_data)
+        return result
 
 
-def run_experiment(prog_args: PBProgramArguments = None) -> None:
+def run_experiment(prog_args: PBProgramArguments | None = None) -> None:
     if prog_args is None:
         prog_args = get_program_arguments()
 
