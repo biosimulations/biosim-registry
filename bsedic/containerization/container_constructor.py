@@ -55,11 +55,7 @@ ENV PATH=/opt/conda/bin:$PATH
             err_msg = f"unknown field in template dockerfile: {desired_field}"
             raise ValueError(err_msg)
 
-    return ContainerizationFileRepr(representation=docker_template), experiment_deps
-
-
-def generate_necessary_values() -> list[str]:
-    return pull_substitution_keys_from_document()
+    return ContainerizationFileRepr(representation=templated_container), experiment_deps
 
 
 # Due to an assumption that we can not have all dependencies included
