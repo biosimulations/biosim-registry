@@ -55,7 +55,7 @@ def test_convert_dependencies_to_installation_string_representation():
     assert results == correct_answer
 
 
-def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_file: str):
+def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_file: str, dependencies: ExperimentPrimaryDependencies):
     with tempfile.TemporaryDirectory() as tmpdir:
         with tempfile.NamedTemporaryFile(mode="w", dir=tmpdir, delete=False) as fake_target_file:
             fake_target_file.write(fake_input_file)
@@ -63,9 +63,8 @@ def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_fil
             input_file_path=fake_target_file.name, working_directory=Path(tmpdir),
             containerization_type=ContainerizationTypes.SINGLE, containerization_engine=ContainerizationEngine.DOCKER
         )
-        results = formulate_dockerfile_for_necessary_env(test_args, ExperimentPrimaryDependencies([
-            'numpy>=2.0.0', 'process-bigraph<1.0'
-        ], []))
+        results = formulate_dockerfile_for_necessary_env(test_args, dependencies)
+        print(results[0].representation)
         assert results[0].representation == correct_answer
 
 
@@ -96,7 +95,9 @@ ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
 "python:pypi<numpy[>=2.0.0]>@numpy.random.rand"
 "python:pypi<process-bigraph[<1.0]>@process_bigraph.processes.ParameterScan"
 """.strip()
-    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file)
+    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file, ExperimentPrimaryDependencies([
+            'numpy>=2.0.0', 'process-bigraph<1.0'
+        ], []))
 
 
 def test_build_dockerfile_for_necessary_env_both() -> None:
@@ -107,31 +108,38 @@ RUN apt update
 RUN apt upgrade -y
 RUN apt install -y git curl
 
+## Additional Execution tools (ex. Conda)
+
+WORKDIR /usr/local/bin
+RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba --strip-components=1
+WORKDIR /
+RUN mkdir /micromamba_env
+RUN micromamba create -p /micromamba_env/runtime_env python=3.12
+RUN eval "$(micromamba shell hook --shell posix)" && micromamba activate /micromamba_env/runtime_env 
+
+                
+
 ## Dependency Installs
-### Conda
-RUN mkdir /micromamba
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-RUN mv bin/micromamba /usr/local/bin/
-RUN micromamba create -y -p /opt/conda -c conda-forge readdy python=3.12
-ENV PATH=/opt/conda/bin:$PATH
-
-### PyPI
 RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'
+RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env readdy python=3.12
 
-##
+
+## Execute
 RUN mkdir /runtime
 WORKDIR /runtime
-RUN git clone https://github.com/biosimulators/bsew.git  /runtime
+RUN git clone https://github.com/biosimulations/biosim-registry.git /runtime
 RUN python3 -m pip install -e /runtime
 
-ENTRYPOINT ["python3", "/runtime/main.py"]
+ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
 """.strip()
     fake_input_file = """
 "python:pypi<numpy[>=2.0.0]>@numpy.random.rand"
 "python:pypi<process-bigraph[<1.0]>@process_bigraph.processes.ParameterScan"
 `python:conda<readdy>@readdy.ReactionDiffusionSystem`
 """.strip()
-    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file)
+    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file, ExperimentPrimaryDependencies([
+            'numpy>=2.0.0', 'process-bigraph<1.0'
+        ], ['readdy']))
 
 
 def test_build_dockerfile_for_necessary_env_conda() -> None:
