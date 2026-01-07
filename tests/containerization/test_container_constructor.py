@@ -1,21 +1,22 @@
 import tempfile
+from pathlib import Path
 
 from bsedic.containerization import (
     convert_dependencies_to_installation_string_representation,
     determine_dependencies,
     formulate_dockerfile_for_necessary_env,
-    generate_necessary_values,
 )
-from bsedic.utils.input_types import ContainerizationEngine, ContainerizationTypes, ProgramArguments
+from bsedic.utils.input_types import ContainerizationEngine, ContainerizationTypes, ExecutionProgramArguments, \
+    ContainerizationProgramArguments, ExperimentPrimaryDependencies
 
 
-def test_generate_necessary_values() -> None:
-    results = generate_necessary_values()
-    correct_answer = [  # update this as we add more fields!
-        "CONDA_FORGE_DEPENDENCIES",
-        "PYPI_DEPENDENCIES",
-    ]
-    assert set(results) == set(correct_answer)
+# def test_generate_necessary_values() -> None:
+#     results = generate_necessary_values()
+#     correct_answer = [  # update this as we add more fields!
+#         "CONDA_FORGE_DEPENDENCIES",
+#         "PYPI_DEPENDENCIES",
+#     ]
+#     assert set(results) == set(correct_answer)
 
 
 def test_determine_dependencies():
@@ -58,10 +59,13 @@ def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_fil
     with tempfile.TemporaryDirectory() as tmpdir:
         with tempfile.NamedTemporaryFile(mode="w", dir=tmpdir, delete=False) as fake_target_file:
             fake_target_file.write(fake_input_file)
-        test_args = ProgramArguments(
-            fake_target_file.name, tmpdir, None, ContainerizationTypes.SINGLE, ContainerizationEngine.DOCKER
+        test_args = ContainerizationProgramArguments(
+            input_file_path=fake_target_file.name, working_directory=Path(tmpdir),
+            containerization_type=ContainerizationTypes.SINGLE, containerization_engine=ContainerizationEngine.DOCKER
         )
-        results = formulate_dockerfile_for_necessary_env(test_args)
+        results = formulate_dockerfile_for_necessary_env(test_args, ExperimentPrimaryDependencies([
+            'numpy>=2.0.0', 'process-bigraph<1.0'
+        ], []))
         assert results[0].representation == correct_answer
 
 
@@ -73,20 +77,20 @@ RUN apt update
 RUN apt upgrade -y
 RUN apt install -y git curl
 
-## Dependency Installs
-### Conda
-# No conda dependencies!
+## Additional Execution tools (ex. Conda)
 
-### PyPI
+
+## Dependency Installs
 RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'
 
-##
+
+## Execute
 RUN mkdir /runtime
 WORKDIR /runtime
-RUN git clone https://github.com/biosimulators/bsew.git  /runtime
+RUN git clone https://github.com/biosimulations/biosim-registry.git  /runtime
 RUN python3 -m pip install -e /runtime
 
-ENTRYPOINT ["python3", "/runtime/main.py"]
+ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
 """.strip()
     fake_input_file = """
 "python:pypi<numpy[>=2.0.0]>@numpy.random.rand"

@@ -10,7 +10,7 @@ RUN apt install -y git curl
 ## Dependency Installs
 {{ dependencies_to_install }}
 
-##
+## Execute
 RUN mkdir /runtime
 WORKDIR /runtime
 RUN git clone https://github.com/biosimulations/biosim-registry.git  /runtime

@@ -19,36 +19,29 @@ from bsedic.utils.input_types import (
 
 def formulate_dockerfile_for_necessary_env(
     program_arguments: ContainerizationProgramArguments,
+    experiment_deps: ExperimentPrimaryDependencies
 ) -> tuple[ContainerizationFileRepr, ExperimentPrimaryDependencies]:
     # pb_document_str: str
-    experiment_deps: ExperimentPrimaryDependencies = ExperimentPrimaryDependencies(
-        pypi_dependencies=[], conda_dependencies=[]
-    )
-    additional_execution_tools: str = ""
     deps_install_command: str = ""
     # with open(program_arguments.input_file_path) as pb_document_file:
     #     pb_document_str = pb_document_file.read()
     # experiment_deps, updated_document_str = determine_dependencies(pb_document_str, program_arguments.passlist_entries)
 
-    if experiment_deps.get_conda_dependencies() is not None:
-        additional_execution_tools += """
-WORKDIR /usr/local/bin
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba --strip-components=1
-WORKDIR /
-RUN mkdir /micromamba_env
-RUN micromamba create -p /micromamba_env/runtime_env python=3.12
-RUN eval "$(micromamba shell hook --shell posix)" && micromamba activate /micromamba_env/runtime_env \n
-        """
-
-    for p in experiment_deps.get_pypi_dependencies():
-        deps_install_command += f"RUN python3 -m pip install {p}\n"
+    pypi_deps = experiment_deps.get_pypi_dependencies()
+    for p in range(len(pypi_deps)):
+        if p == 0:
+            deps_install_command += f"RUN python3 -m pip install '{pypi_deps[p]}'"
+        elif p != len(pypi_deps) - 1:
+            deps_install_command += f" '{pypi_deps[p]}'"
+        else:
+            deps_install_command += f" '{pypi_deps[p]}'\n"
     for c in experiment_deps.get_conda_dependencies():
         deps_install_command += f"RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env {c}\n"
 
-    with open("generic_container.jinja") as f:
+    with open(__file__.rsplit(os.sep, maxsplit=1)[0] + f"{os.sep}generic_container.jinja") as f:
         template = Template(f.read())
         templated_container = template.render(
-            additional_execution_tools=additional_execution_tools, dependencies_to_install=deps_install_command
+            additional_execution_tools=experiment_deps.manager_installation_string(), dependencies_to_install=deps_install_command
         )
 
     return ContainerizationFileRepr(representation=templated_container), experiment_deps
@@ -159,7 +152,8 @@ def generate_container_def_file(
     docker_template: ContainerizationFileRepr
     returned_template: ContainerizationFileRepr
     primary_dependencies: ExperimentPrimaryDependencies
-    docker_template, primary_dependencies = formulate_dockerfile_for_necessary_env(required_program_arguments)
+    docker_template, primary_dependencies = formulate_dockerfile_for_necessary_env(required_program_arguments,
+                                                                                   experiment_deps=ExperimentPrimaryDependencies([], []))
     returned_template = docker_template
     if required_program_arguments.containerization_type != ContainerizationTypes.NONE:
         if required_program_arguments.containerization_type != ContainerizationTypes.SINGLE:
