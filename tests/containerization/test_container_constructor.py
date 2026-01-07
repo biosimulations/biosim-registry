@@ -19,6 +19,30 @@ from bsedic.utils.input_types import ContainerizationEngine, ContainerizationTyp
 #     assert set(results) == set(correct_answer)
 
 
+def get_test_docker_str(managers_to_install: str = "", packages_to_add: str = "") -> str:
+    return f"""
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm
+
+RUN apt update
+RUN apt upgrade -y
+RUN apt install -y git curl
+
+## Additional Execution tools (ex. Conda)
+{managers_to_install}
+
+## Dependency Installs
+{packages_to_add}
+
+
+## Execute
+RUN mkdir /runtime
+WORKDIR /runtime
+RUN git clone https://github.com/biosimulations/biosim-registry.git /runtime
+RUN python3 -m pip install -e /runtime
+
+ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
+""".strip()
+
 def test_determine_dependencies():
     mock_list = """
 `python:pypi<numpy[>=2.0.0]>@numpy.random.rand`
@@ -69,28 +93,7 @@ def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_fil
 
 
 def test_build_dockerfile_for_necessary_env_pypi_only() -> None:
-    correct_answer = """
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm
-
-RUN apt update
-RUN apt upgrade -y
-RUN apt install -y git curl
-
-## Additional Execution tools (ex. Conda)
-
-
-## Dependency Installs
-RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'
-
-
-## Execute
-RUN mkdir /runtime
-WORKDIR /runtime
-RUN git clone https://github.com/biosimulations/biosim-registry.git  /runtime
-RUN python3 -m pip install -e /runtime
-
-ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
-""".strip()
+    correct_answer = get_test_docker_str(packages_to_add="RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'")
     fake_input_file = """
 "python:pypi<numpy[>=2.0.0]>@numpy.random.rand"
 "python:pypi<process-bigraph[<1.0]>@process_bigraph.processes.ParameterScan"
@@ -101,75 +104,27 @@ ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
 
 
 def test_build_dockerfile_for_necessary_env_both() -> None:
-    correct_answer = """
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm
-
-RUN apt update
-RUN apt upgrade -y
-RUN apt install -y git curl
-
-## Additional Execution tools (ex. Conda)
-
-WORKDIR /usr/local/bin
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba --strip-components=1
-WORKDIR /
-RUN mkdir /micromamba_env
-RUN micromamba create -p /micromamba_env/runtime_env python=3.12
-RUN eval "$(micromamba shell hook --shell posix)" && micromamba activate /micromamba_env/runtime_env 
-
-                
-
-## Dependency Installs
+    exp_dependencies = ExperimentPrimaryDependencies([
+            'numpy>=2.0.0', 'process-bigraph<1.0'
+        ], ['readdy'])
+    packages_to_install = """
 RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'
 RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env readdy python=3.12
-
-
-## Execute
-RUN mkdir /runtime
-WORKDIR /runtime
-RUN git clone https://github.com/biosimulations/biosim-registry.git /runtime
-RUN python3 -m pip install -e /runtime
-
-ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
 """.strip()
     fake_input_file = """
 "python:pypi<numpy[>=2.0.0]>@numpy.random.rand"
 "python:pypi<process-bigraph[<1.0]>@process_bigraph.processes.ParameterScan"
 `python:conda<readdy>@readdy.ReactionDiffusionSystem`
 """.strip()
-    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file, ExperimentPrimaryDependencies([
-            'numpy>=2.0.0', 'process-bigraph<1.0'
-        ], ['readdy']))
+    correct_answer = get_test_docker_str(exp_dependencies.manager_installation_string(), packages_to_install)
+    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file, exp_dependencies)
 
 
 def test_build_dockerfile_for_necessary_env_conda() -> None:
-    correct_answer = """
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm
-
-RUN apt update
-RUN apt upgrade -y
-RUN apt install -y git curl
-
-## Dependency Installs
-### Conda
-RUN mkdir /micromamba
-RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
-RUN mv bin/micromamba /usr/local/bin/
-RUN micromamba create -y -p /opt/conda -c conda-forge readdy python=3.12
-ENV PATH=/opt/conda/bin:$PATH
-
-### PyPI
-# No PyPI dependencies!
-
-##
-RUN mkdir /runtime
-WORKDIR /runtime
-RUN git clone https://github.com/biosimulators/bsew.git  /runtime
-RUN python3 -m pip install -e /runtime
-
-ENTRYPOINT ["python3", "/runtime/main.py"]
-""".strip()
-    fake_input_file = """
-`python:conda<readdy>@readdy.ReactionDiffusionSystem`
-""".strip()
-    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file)
+    exp_dependencies = ExperimentPrimaryDependencies([], ['readdy'])
+    packages_to_install = """
+RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env readdy python=3.12
+    """.strip()
+    correct_answer = get_test_docker_str(managers_to_install=exp_dependencies.manager_installation_string(),
+    packages_to_add=packages_to_install)
+    _build_dockerfile_for_necessary_env_exec(correct_answer, "", exp_dependencies)

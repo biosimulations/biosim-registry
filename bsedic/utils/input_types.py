@@ -56,14 +56,12 @@ class ExperimentPrimaryDependencies(BaseModel):
     def manager_installation_string(self) -> str:
         additional_execution_tools: str = ""
         if len(self.get_conda_dependencies()) > 0:
-            additional_execution_tools += """
-WORKDIR /usr/local/bin
+            additional_execution_tools += """WORKDIR /usr/local/bin
 RUN curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba --strip-components=1
 WORKDIR /
 RUN mkdir /micromamba_env
 RUN micromamba create -p /micromamba_env/runtime_env python=3.12
-RUN eval "$(micromamba shell hook --shell posix)" && micromamba activate /micromamba_env/runtime_env \n
-                """
+RUN eval "$(micromamba shell hook --shell posix)" && micromamba activate /micromamba_env/runtime_env"""
         return additional_execution_tools
 
     def get_compact_repr(self) -> str:
