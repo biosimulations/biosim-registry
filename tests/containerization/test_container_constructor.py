@@ -6,9 +6,12 @@ from bsedic.containerization import (
     determine_dependencies,
     formulate_dockerfile_for_necessary_env,
 )
-from bsedic.utils.input_types import ContainerizationEngine, ContainerizationTypes, ExecutionProgramArguments, \
-    ContainerizationProgramArguments, ExperimentPrimaryDependencies
-
+from bsedic.utils.input_types import (
+    ContainerizationEngine,
+    ContainerizationProgramArguments,
+    ContainerizationTypes,
+    ExperimentPrimaryDependencies,
+)
 
 # def test_generate_necessary_values() -> None:
 #     results = generate_necessary_values()
@@ -42,6 +45,7 @@ RUN python3 -m pip install -e /runtime
 
 ENTRYPOINT ["python3", "/runtime/bsedic/main.py"]
 """.strip()
+
 
 def test_determine_dependencies():
     mock_list = """
@@ -79,13 +83,17 @@ def test_convert_dependencies_to_installation_string_representation():
     assert results == correct_answer
 
 
-def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_file: str, dependencies: ExperimentPrimaryDependencies):
+def _build_dockerfile_for_necessary_env_exec(
+    correct_answer: str, fake_input_file: str, dependencies: ExperimentPrimaryDependencies
+):
     with tempfile.TemporaryDirectory() as tmpdir:
         with tempfile.NamedTemporaryFile(mode="w", dir=tmpdir, delete=False) as fake_target_file:
             fake_target_file.write(fake_input_file)
         test_args = ContainerizationProgramArguments(
-            input_file_path=fake_target_file.name, working_directory=Path(tmpdir),
-            containerization_type=ContainerizationTypes.SINGLE, containerization_engine=ContainerizationEngine.DOCKER
+            input_file_path=fake_target_file.name,
+            working_directory=Path(tmpdir),
+            containerization_type=ContainerizationTypes.SINGLE,
+            containerization_engine=ContainerizationEngine.DOCKER,
         )
         results = formulate_dockerfile_for_necessary_env(test_args, dependencies)
         print(results[0].representation)
@@ -93,20 +101,20 @@ def _build_dockerfile_for_necessary_env_exec(correct_answer: str, fake_input_fil
 
 
 def test_build_dockerfile_for_necessary_env_pypi_only() -> None:
-    correct_answer = get_test_docker_str(packages_to_add="RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'")
+    correct_answer = get_test_docker_str(
+        packages_to_add="RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'"
+    )
     fake_input_file = """
 "python:pypi<numpy[>=2.0.0]>@numpy.random.rand"
 "python:pypi<process-bigraph[<1.0]>@process_bigraph.processes.ParameterScan"
 """.strip()
-    _build_dockerfile_for_necessary_env_exec(correct_answer, fake_input_file, ExperimentPrimaryDependencies([
-            'numpy>=2.0.0', 'process-bigraph<1.0'
-        ], []))
+    _build_dockerfile_for_necessary_env_exec(
+        correct_answer, fake_input_file, ExperimentPrimaryDependencies(["numpy>=2.0.0", "process-bigraph<1.0"], [])
+    )
 
 
 def test_build_dockerfile_for_necessary_env_both() -> None:
-    exp_dependencies = ExperimentPrimaryDependencies([
-            'numpy>=2.0.0', 'process-bigraph<1.0'
-        ], ['readdy'])
+    exp_dependencies = ExperimentPrimaryDependencies(["numpy>=2.0.0", "process-bigraph<1.0"], ["readdy"])
     packages_to_install = """
 RUN python3 -m pip install 'numpy>=2.0.0' 'process-bigraph<1.0'
 RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env readdy python=3.12
@@ -121,10 +129,11 @@ RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env readdy pytho
 
 
 def test_build_dockerfile_for_necessary_env_conda() -> None:
-    exp_dependencies = ExperimentPrimaryDependencies([], ['readdy'])
+    exp_dependencies = ExperimentPrimaryDependencies([], ["readdy"])
     packages_to_install = """
 RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env readdy python=3.12
     """.strip()
-    correct_answer = get_test_docker_str(managers_to_install=exp_dependencies.manager_installation_string(),
-    packages_to_add=packages_to_install)
+    correct_answer = get_test_docker_str(
+        managers_to_install=exp_dependencies.manager_installation_string(), packages_to_add=packages_to_install
+    )
     _build_dockerfile_for_necessary_env_exec(correct_answer, "", exp_dependencies)

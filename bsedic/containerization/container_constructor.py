@@ -18,8 +18,7 @@ from bsedic.utils.input_types import (
 
 
 def formulate_dockerfile_for_necessary_env(
-    program_arguments: ContainerizationProgramArguments,
-    experiment_deps: ExperimentPrimaryDependencies
+    program_arguments: ContainerizationProgramArguments, experiment_deps: ExperimentPrimaryDependencies
 ) -> tuple[ContainerizationFileRepr, ExperimentPrimaryDependencies]:
     # pb_document_str: str
     deps_install_command: str = ""
@@ -41,7 +40,8 @@ def formulate_dockerfile_for_necessary_env(
     with open(__file__.rsplit(os.sep, maxsplit=1)[0] + f"{os.sep}generic_container.jinja") as f:
         template = Template(f.read())
         templated_container = template.render(
-            additional_execution_tools=experiment_deps.manager_installation_string(), dependencies_to_install=deps_install_command
+            additional_execution_tools=experiment_deps.manager_installation_string(),
+            dependencies_to_install=deps_install_command,
         )
 
     return ContainerizationFileRepr(representation=templated_container), experiment_deps
@@ -152,8 +152,9 @@ def generate_container_def_file(
     docker_template: ContainerizationFileRepr
     returned_template: ContainerizationFileRepr
     primary_dependencies: ExperimentPrimaryDependencies
-    docker_template, primary_dependencies = formulate_dockerfile_for_necessary_env(required_program_arguments,
-                                                                                   experiment_deps=ExperimentPrimaryDependencies([], []))
+    docker_template, primary_dependencies = formulate_dockerfile_for_necessary_env(
+        required_program_arguments, experiment_deps=ExperimentPrimaryDependencies([], [])
+    )
     returned_template = docker_template
     if required_program_arguments.containerization_type != ContainerizationTypes.NONE:
         if required_program_arguments.containerization_type != ContainerizationTypes.SINGLE:
