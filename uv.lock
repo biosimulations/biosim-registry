@@ -94,11 +94,10 @@ wheels = [
 
 [[package]]
 name = "bigraph-schema"
-version = "1.0.0"
+version = "0.0.77"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fire" },
-    { name = "ipdb" },
     { name = "numpy" },
     { name = "orjson" },
     { name = "parsimonious" },
@@ -109,9 +108,9 @@ dependencies = [
     { name = "setuptools" },
     { name = "twine" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2c/3d/59b35f60703e128aa30274a7912e405a6fb12b2f5e7476b1707b77e03fc6/bigraph_schema-1.0.0.tar.gz", hash = "sha256:8ab90d2b647c49d7517bf89823b1eb69fbf6582d0991ba07d8f1f75d485c8fdd", size = 39366, upload-time = "2025-12-26T07:27:57.87Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9c/fa/1aaad9d4ccec44f92670b880f13a4dc35e04d0951626f9688d2ce2e2147d/bigraph_schema-0.0.77.tar.gz", hash = "sha256:4dc42288f0a5fe140a5e1b6e9fb2a2137e6c30eed6ce7bcda2e47e5858f20687", size = 54309, upload-time = "2025-11-18T09:11:55.816Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/a8/243ff34c42251820ac599471905631f2b78fb5a8a3946b9f9b9f992c3313/bigraph_schema-1.0.0-py3-none-any.whl", hash = "sha256:c828d399e63859323b728489b476f5d7b2efe72d91e7a0e508a84bcaecb4689c", size = 47367, upload-time = "2025-12-26T07:27:56.395Z" },
+    { url = "https://files.pythonhosted.org/packages/4d/28/ff47fc469d8324f92a9928f7d87d262782f9b6308a340147ba2a98f5dcf3/bigraph_schema-0.0.77-py3-none-any.whl", hash = "sha256:7cf511addbbe1022b19db287b7e973480b263922c3533c560d66ac55e2939f26", size = 57655, upload-time = "2025-11-18T09:11:54.511Z" },
 ]
 
 [[package]]
@@ -119,6 +118,7 @@ name = "bsedic"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [
+    { name = "bigraph-schema" },
     { name = "copasi-basico" },
     { name = "jinja2" },
     { name = "libroadrunner" },
@@ -148,6 +148,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bigraph-schema", specifier = "==0.0.77" },
     { name = "copasi-basico" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "libroadrunner" },
@@ -839,7 +840,7 @@ wheels = [
 
 [[package]]
 name = "jupyter-client"
-version = "8.7.0"
+version = "8.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jupyter-core" },
@@ -848,9 +849,9 @@ dependencies = [
     { name = "tornado" },
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/27/d10de45e8ad4ce872372c4a3a37b7b35b6b064f6f023a5c14ffcced4d59d/jupyter_client-8.7.0.tar.gz", hash = "sha256:3357212d9cbe01209e59190f67a3a7e1f387a4f4e88d1e0433ad84d7b262531d", size = 344691, upload-time = "2025-12-09T18:37:01.953Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/e4/ba649102a3bc3fbca54e7239fb924fd434c766f855693d86de0b1f2bec81/jupyter_client-8.8.0.tar.gz", hash = "sha256:d556811419a4f2d96c869af34e854e3f059b7cc2d6d01a9cd9c85c267691be3e", size = 348020, upload-time = "2026-01-08T13:55:47.938Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/f5/fddaec430367be9d62a7ed125530e133bfd4a1c0350fe221149ee0f2b526/jupyter_client-8.7.0-py3-none-any.whl", hash = "sha256:3671a94fd25e62f5f2f554f5e95389c2294d89822378a5f2dd24353e1494a9e0", size = 106215, upload-time = "2025-12-09T18:37:00.024Z" },
+    { url = "https://files.pythonhosted.org/packages/2d/0b/ceb7694d864abc0a047649aec263878acb9f792e1fec3e676f22dc9015e3/jupyter_client-8.8.0-py3-none-any.whl", hash = "sha256:f93a5b99c5e23a507b773d3a1136bd6e16c67883ccdbd9a829b0bbdb98cd7d7a", size = 107371, upload-time = "2026-01-08T13:55:45.562Z" },
 ]
 
 [[package]]
