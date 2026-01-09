@@ -1,7 +1,7 @@
-from typing import Dict, Any
+from typing import Any, ClassVar
 
 import tellurium as te
-from process_bigraph import Step, ProcessTypes
+from process_bigraph import ProcessTypes, Step
 from roadrunner import RoadRunner
 
 from bsedic.registry.utils import model_path_resolution
@@ -15,7 +15,8 @@ class TelluriumStep(Step):
         try:
             self.rr: RoadRunner = te.loadSBMLModel(model_path_resolution(model_source))
         except Exception as e:
-            raise RuntimeError(f"Could not load SBML model: {model_source}\n{e}")
+            err_msg = f"Could not load SBML model: {model_source}\n{e}"
+            raise RuntimeError(err_msg) from e
 
         # ----- Cache IDs -----
         self.species_ids = list(self.rr.getFloatingSpeciesIds())
@@ -25,13 +26,9 @@ class TelluriumStep(Step):
     # ------------------------------------------------
     # process-bigraph API
     # ------------------------------------------------
-    def initial_state(self) -> Dict[str, Any]:
+    def initial_state(self) -> dict[str, Any]:
         conc = self.rr.getFloatingSpeciesConcentrations()
-        return {
-            "species_concentrations": {
-                sid: float(conc[i]) for i, sid in enumerate(self.species_ids)
-            }
-        }
+        return {"species_concentrations": {sid: float(conc[i]) for i, sid in enumerate(self.species_ids)}}
 
     def inputs(self) -> dict[str, str]:
         return {
@@ -40,11 +37,7 @@ class TelluriumStep(Step):
         }
 
     def set_road_runner_incoming_values(self, inputs: Any) -> None:
-        spec_data = (
-                inputs.get("species_counts")
-                or inputs.get("species_concentrations")
-                or {}
-        )
+        spec_data = inputs.get("species_counts") or inputs.get("species_concentrations") or {}
 
         # 2) Set incoming values on the model
         print(spec_data)
@@ -54,7 +47,7 @@ class TelluriumStep(Step):
 
 
 class TelluriumUTCStep(TelluriumStep):
-    config_schema = {
+    config_schema: ClassVar[dict[str, str]] = {
         "model_source": "string",
         "time": "float",
         "n_points": "integer",
@@ -67,9 +60,8 @@ class TelluriumUTCStep(TelluriumStep):
         self.time = float(self.config.get("time", 1.0))
         self.n_points = int(self.config.get("n_points", 2))
         if self.n_points < 2:
-            raise ValueError(
-                f"TelluriumUTCStep: n_points must be >= 2, got {self.n_points}"
-            )
+            err_msg = f"TelluriumUTCStep: n_points must be >= 2, got {self.n_points}"
+            raise ValueError(err_msg)
 
     def outputs(self) -> dict[str, str]:
         return {"result": "numeric_result"}
@@ -77,7 +69,7 @@ class TelluriumUTCStep(TelluriumStep):
     # ------------------------------------------------
     # update logic
     # ------------------------------------------------
-    def update(self, state: Dict[str, Any], interval: Any=None) -> dict[str, Any]:
+    def update(self, state: dict[str, Any], interval: Any = None) -> dict[str, Any]:
         # 1) Choose source
         # 2) Update species concentrations using Tellurium's setValue
         self.set_road_runner_incoming_values(state)
@@ -88,15 +80,13 @@ class TelluriumUTCStep(TelluriumStep):
 
         # Build a mapping from *normalized* column names to indices.
         # This turns "[S1]" -> "S1", etc.
-        norm_to_index: Dict[str, int] = {
-            name.strip("[]"): i for i, name in enumerate(colnames)
-        }
+        norm_to_index: dict[str, int] = {name.strip("[]"): i for i, name in enumerate(colnames)}
 
         time_idx = norm_to_index["time"]
         time = tc[:, time_idx].tolist()
 
         # 4) Species trajectories
-        species_cols: Dict[str, int] = {}
+        species_cols: dict[str, int] = {}
         for sid in self.species_ids:
             idx = norm_to_index.get(sid)
             if idx is not None:
@@ -121,25 +111,22 @@ class TelluriumUTCStep(TelluriumStep):
 
         # 7) Send update — structured for easy comparison / aggregation
         result = {
-                "time": time,
-                "columns": [c.strip("[]") for c in colnames if c != "time"],
-                "values": tc[:, 1:].tolist(),
-                # "n_spacial_dimensions": (tc.shape[0], tc.shape[1] - 1),
-                # "fluxes": flux_json,
-            }
-
-        return {
-            "result": result
+            "time": time,
+            "columns": [c.strip("[]") for c in colnames if c != "time"],
+            "values": tc[:, 1:].tolist(),
+            # "n_spacial_dimensions": (tc.shape[0], tc.shape[1] - 1),
+            # "fluxes": flux_json,
         }
+
+        return {"result": result}
 
 
 class TelluriumSteadyStateStep(TelluriumStep):
-
-    config_schema = {
+    config_schema: ClassVar[dict[str, str]] = {
         "model_source": "string",
     }
 
-    def initialize(self, config: Any=None) -> None:
+    def initialize(self, config: Any = None) -> None:
         self._tellurium_initialize()
 
     def outputs(self) -> dict[str, str]:
@@ -156,41 +143,35 @@ class TelluriumSteadyStateStep(TelluriumStep):
         # 3) Run steady-state computation
         #    RoadRunner steadyState() modifies the internal state to a (near-)steady state.
         try:
-            confidence = self.rr.steadyState()
+            self.rr.steadyState()
         except Exception as e:
-            raise RuntimeError(f"Tellurium steadyState() failed: {e}")
+            err_msg = f"Tellurium steadyState() failed: {e}"
+            raise RuntimeError(err_msg) from e
 
         # 4) Read back steady-state species concentrations
-        conc_ss = self.rr.getFloatingSpeciesConcentrations()
-        species_ss = {
-            sid: float(conc_ss[i])
-            for i, sid in enumerate(self.species_ids)
-        }
+        # conc_ss = self.rr.getFloatingSpeciesConcentrations()
+        # species_ss = {sid: float(conc_ss[i]) for i, sid in enumerate(self.species_ids)}
 
         # 5) Read back steady-state reaction fluxes
-        rates_ss = self.rr.getReactionRates()
-        flux_ss = {
-            rid: float(rates_ss[i])
-            for i, rid in enumerate(self.reaction_ids)
-        }
+        # rates_ss = self.rr.getReactionRates()
+        # flux_ss = {rid: float(rates_ss[i]) for i, rid in enumerate(self.reaction_ids)}
 
         # 6) Package as a one-point "time series", time = 0.0
-        time_list = [0.0]
-        species_json = {sid: [val] for sid, val in species_ss.items()}
-        flux_json = {rid: [val] for rid, val in flux_ss.items()}
+        # time_list = [0.0]
+        # species_json = {sid: [val] for sid, val in species_ss.items()}
+        # flux_json = {rid: [val] for rid, val in flux_ss.items()}
 
         steady_state = {
             "time": [0],
             "columns": self.rr.getFloatingSpeciesConcentrationsNamedArray().colnames,
-            "values": self.rr.getFloatingSpeciesConcentrationsNamedArray().tolist()
+            "values": self.rr.getFloatingSpeciesConcentrationsNamedArray().tolist(),
         }
 
         jacobian = {
             "time": [0],
             "columns": self.rr.getFullJacobian().colnames,
-            "values": self.rr.getFullJacobian().tolist()
+            "values": self.rr.getFullJacobian().tolist(),
         }
-
 
         result = {
             "jacobian": jacobian,
@@ -222,7 +203,7 @@ def run_ss_test(core: Any) -> None:
     step = TelluriumSteadyStateStep(
         {
             "model_source": "models/BIOMD0000000012_url.xml",
-            "time": 0.0,   # unused
+            "time": 0.0,  # unused
         },
         core=core,
     )
@@ -232,6 +213,7 @@ def run_ss_test(core: Any) -> None:
 
     out = step.update(init)
     print("Steady-state result:", out)
+
 
 if __name__ == "__main__":
     core = ProcessTypes()
