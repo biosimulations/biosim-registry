@@ -32,7 +32,7 @@ def comparison_document() -> dict[Any, Any]:
         "species_counts": {},
         "tellurium_step": {
             "_type": "step",
-            "address": "local:biocompose.processes.tellurium_process.TelluriumUTCStep",
+            "address": "local:bsedic.registry.simulators.tellurium_process.TelluriumUTCStep",
             "config": {
                 "model_source": model_path,
                 "time": 10,
@@ -45,7 +45,7 @@ def comparison_document() -> dict[Any, Any]:
         },
         "copasi_step": {
             "_type": "step",
-            "address": "local:biocompose.processes.copasi_process.CopasiUTCStep",
+            "address": "local:bsedic.registry.simulators.copasi_process.CopasiUTCStep",
             "config": {
                 "model_source": model_path,
                 "time": 10,
