@@ -17,9 +17,22 @@ from pbest.utils.input_types import (
 )
 
 
+def get_experiment_deps() -> ExperimentPrimaryDependencies:
+    return ExperimentPrimaryDependencies(
+        [
+            "cobra",
+            "tellurium",
+            "numpy",
+            "matplotlib",
+            "scipy",
+        ],
+        ["readdy"],
+    )
+
+
 def formulate_dockerfile_for_necessary_env(
     program_arguments: ContainerizationProgramArguments, experiment_deps: ExperimentPrimaryDependencies
-) -> tuple[ContainerizationFileRepr, ExperimentPrimaryDependencies]:
+) -> ContainerizationFileRepr:
     # pb_document_str: str
     deps_install_command: str = ""
     # with open(program_arguments.input_file_path) as pb_document_file:
@@ -44,7 +57,7 @@ def formulate_dockerfile_for_necessary_env(
             dependencies_to_install=deps_install_command,
         )
 
-    return ContainerizationFileRepr(representation=templated_container), experiment_deps
+    return ContainerizationFileRepr(representation=templated_container)
 
 
 # Due to an assumption that we can not have all dependencies included
@@ -154,16 +167,7 @@ def generate_container_def_file(
     primary_dependencies: ExperimentPrimaryDependencies
     docker_template, primary_dependencies = formulate_dockerfile_for_necessary_env(
         required_program_arguments,
-        experiment_deps=ExperimentPrimaryDependencies(
-            [
-                "cobra",
-                "tellurium",
-                "numpy",
-                "matplotlib",
-                "scipy",
-            ],
-            ["readdy"],
-        ),
+        experiment_deps=get_experiment_deps(),
     )
     returned_template = docker_template
     if required_program_arguments.containerization_type != ContainerizationTypes.NONE:
