@@ -1457,6 +1457,7 @@ name = "pbest"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "bigraph-schema" },
     { name = "copasi-basico" },
     { name = "jinja2" },
     { name = "libroadrunner" },
@@ -1472,6 +1473,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "deptry" },
+    { name = "docker" },
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
@@ -1486,6 +1488,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bigraph-schema", specifier = "==0.0.77" },
     { name = "copasi-basico" },
     { name = "jinja2", specifier = ">=3.1.6" },
     { name = "libroadrunner" },
@@ -1501,6 +1504,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "deptry", specifier = ">=0.23.0" },
+    { name = "docker" },
     { name = "mkdocs", specifier = ">=1.4.2" },
     { name = "mkdocs-material", specifier = ">=8.5.10" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=0.26.1" },
