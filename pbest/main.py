@@ -15,6 +15,7 @@ from pbest.globals import get_loaded_core
 from pbest.utils.input_types import ExecutionProgramArguments
 import logging
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
