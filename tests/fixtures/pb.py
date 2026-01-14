@@ -22,9 +22,13 @@ def fully_registered_builder(fully_registered_core) -> CompositeBuilder:
     return CompositeBuilder(core=fully_registered_core)
 
 
+def _get_model_path() -> str:
+    return f"{os.getcwd()}/tests/resources/BIOMD0000000012_url.xml"
+
+
 @pytest.fixture(scope="function", autouse=True)
 def comparison_document() -> dict[Any, Any]:
-    model_path = f"{os.getcwd()}/tests/resources/BIOMD0000000012_url.xml"
+    model_path = _get_model_path()
 
     state = {
         # provide initial values to overwrite those in the configured model
