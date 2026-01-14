@@ -11,11 +11,10 @@ from typing import Any
 
 from process_bigraph import Composite, gather_emitter_results
 
-from pbest.globals import get_loaded_core
+from pbest.globals import get_loaded_core, set_logging_config
 from pbest.utils.input_types import ExecutionProgramArguments
 import logging
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -99,9 +98,14 @@ def run_experiment(prog_args: ExecutionProgramArguments) -> None:
                 json.dump(query_results, emitter_results_file)
         prepared_composite.save(filename=f"state_{date}#{time}.pbg", outdir=tmp_dir)
 
+        logger.debug(f"Copying tmpdir contents [{os.listdir(tmp_dir)}] to output directory {prog_args.output_directory}")
         shutil.copytree(tmp_dir, prog_args.output_directory, dirs_exist_ok=True)
+        logger.debug(f"Contents copied to output directory [{os.listdir(prog_args.output_directory)}]")
 
 if __name__ == "__main__":
+    log_level = os.getenv("LOGGER_LEVEL", "INFO")
+    set_logging_config(log_level)
+
     logger.info("Starting execution...")
     program_arguments = get_program_env_variables()
     if program_arguments is None:

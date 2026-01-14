@@ -1,8 +1,14 @@
+import logging
+
 from process_bigraph import ProcessTypes, generate_core
 
 from pbest import standard_types
 
 loaded_core: ProcessTypes | None = None
+
+
+def set_logging_config(level: str) -> None:
+    logging.basicConfig(level=level)
 
 
 def get_loaded_core() -> ProcessTypes:
