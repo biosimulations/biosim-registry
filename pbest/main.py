@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import json
+import logging
 import os
 import shutil
 import sys
@@ -13,7 +14,6 @@ from process_bigraph import Composite, gather_emitter_results
 
 from pbest.globals import get_loaded_core, set_logging_config
 from pbest.utils.input_types import ExecutionProgramArguments
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,7 @@ running Process Bigraph Experiments.""",
     return ExecutionProgramArguments(
         input_file_path=input_file, output_directory=Path(output_dir), interval=args.interval
     )
+
 
 def get_program_env_variables() -> ExecutionProgramArguments | None:
     pb_input_path = os.getenv("PB_INPUT_FILE_PATH")
@@ -98,9 +99,12 @@ def run_experiment(prog_args: ExecutionProgramArguments) -> None:
                 json.dump(query_results, emitter_results_file)
         prepared_composite.save(filename=f"state_{date}#{time}.pbg", outdir=tmp_dir)
 
-        logger.debug(f"Copying tmpdir contents [{os.listdir(tmp_dir)}] to output directory {prog_args.output_directory}")
+        logger.debug(
+            f"Copying tmpdir contents [{os.listdir(tmp_dir)}] to output directory {prog_args.output_directory}"
+        )
         shutil.copytree(tmp_dir, prog_args.output_directory, dirs_exist_ok=True)
         logger.debug(f"Contents copied to output directory [{os.listdir(prog_args.output_directory)}]")
+
 
 if __name__ == "__main__":
     log_level = os.getenv("LOGGER_LEVEL", "INFO")
