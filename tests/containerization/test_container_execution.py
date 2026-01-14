@@ -1,3 +1,5 @@
+# ruff: noqa: S607
+# ruff: noqa: S603
 import json
 import os
 import shutil
@@ -9,8 +11,8 @@ from typing import Any
 import docker
 import pytest
 
-from pbest.containerization.container_constructor import get_experiment_deps, formulate_dockerfile_for_necessary_env
-from pbest.utils.input_types import ContainerizationProgramArguments, ContainerizationTypes, ContainerizationEngine
+from pbest.containerization.container_constructor import formulate_dockerfile_for_necessary_env, get_experiment_deps
+from pbest.utils.input_types import ContainerizationEngine, ContainerizationProgramArguments, ContainerizationTypes
 from tests.fixtures.pb import _get_model_path
 from tests.fixtures.utils import is_docker_present
 from tests.standard_tools.test_comparison import comparison_result_dict_test
@@ -33,7 +35,6 @@ def test_execution_of_container(comparison_document: dict[Any, Any]) -> None:
         comparison_pbg_name = "comparison.pbif"
         comparison_pbg_path = f"{input_dir}{os.sep}{comparison_pbg_name}"
 
-
         shutil.copyfile(_get_model_path(), input_dir / model_name)
         with open(comparison_pbg_path, "w") as f:
             comparison_doc_str = json.dumps(comparison_document)
@@ -46,42 +47,51 @@ def test_execution_of_container(comparison_document: dict[Any, Any]) -> None:
                     containerization_type=ContainerizationTypes.SINGLE,
                     containerization_engine=ContainerizationEngine.DOCKER,
                     working_directory=Path(input_dir),
-                    input_file_path=comparison_pbg_path),
-                experiment_deps)
+                    input_file_path=comparison_pbg_path,
+                ),
+                experiment_deps,
+            )
             print(docker_file.representation)
             f.write(docker_file.representation)
 
         # Subprocess because SDK seems to have problems building containers for other platforms
-        output = subprocess.run(
+        subprocess.run(
             [
-                "docker", "buildx", "build",
+                "docker",
+                "buildx",
+                "build",
                 "--platform=linux/amd64",
                 "--load",
                 # "--no-cache",
-                "-t", docker_tag,
+                "-t",
+                docker_tag,
                 str(input_dir),
             ],
-            check=True
+            check=True,
         )
 
         # Bind dir with all related files to /experiment
         #
-        logs = client.containers.run(
+        client.containers.run(
             image="test_crbm_containerization:latest",
             remove=True,
-            volumes={input_dir: {"bind": "/experiment/input", "mode": "rw"},
-                     output_dir: {"bind": "/experiment/output", "mode": "rw"}},
-            environment={"PB_INPUT_FILE_PATH": f"/experiment/input/{comparison_pbg_name}",
-                         "PB_OUTPUT_DIRECTORY": "/experiment/output",
-                         "LOGGER_LEVEL": "DEBUG",
-                         "PB_INTERVAL": 1},
+            volumes={
+                input_dir: {"bind": "/experiment/input", "mode": "rw"},
+                output_dir: {"bind": "/experiment/output", "mode": "rw"},
+            },
+            environment={
+                "PB_INPUT_FILE_PATH": f"/experiment/input/{comparison_pbg_name}",
+                "PB_OUTPUT_DIRECTORY": "/experiment/output",
+                "LOGGER_LEVEL": "DEBUG",
+                "PB_INTERVAL": 1,
+            },
             platform="linux/amd64",
             stderr=True,
             stdout=True,
         )
 
-        result_file = [k for k in os.listdir(output_dir) if ".pbg" in k][0]
-        with open(os.path.join(output_dir, result_file), "r") as f:
+        result_file = next(k for k in os.listdir(output_dir) if ".pbg" in k)
+        with open(os.path.join(output_dir, result_file)) as f:
             json_result = json.load(f)["state"]["comparison_result"]["species_mse"]
 
         comparison_result_dict_test(json_result)
