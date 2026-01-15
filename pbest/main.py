@@ -114,6 +114,6 @@ if __name__ == "__main__":
     program_arguments = get_program_env_variables()
     if program_arguments is None:
         program_arguments = get_program_arguments()
-    logger.info("Got Program Arguments")
+    logger.info("Got Program Arguments: " + str(program_arguments))
     run_experiment(program_arguments)
     logger.info("Finished executing experiment.")
