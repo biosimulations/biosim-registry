@@ -4,7 +4,6 @@ from process_bigraph import ProcessTypes, generate_core
 
 from pbest import standard_types
 
-
 logger = logging.getLogger(__name__)
 
 loaded_core: ProcessTypes | None = None

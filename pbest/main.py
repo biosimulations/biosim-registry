@@ -96,11 +96,14 @@ def run_experiment(prog_args: ExecutionProgramArguments) -> None:
 
         try:
             if len(query_results) != 0:
-                emitter_results_file_path = os.path.join(prog_args.output_directory, f"results_{date}[{tz}#{time}].pber")
+                emitter_results_file_path = os.path.join(
+                    prog_args.output_directory, f"results_{date}[{tz}#{time}].pber"
+                )
                 with open(emitter_results_file_path, "w") as emitter_results_file:
                     json.dump(query_results, emitter_results_file)
         except TypeError as e:
-            logger.error(f"Tried to save query results to {emitter_results_file_path}: {e}")
+            err_msg = f"Tried to save query results to {emitter_results_file_path}: {e}"
+            logger.exception(err_msg)
 
         prepared_composite.save(filename=f"state_{date}#{time}.pbg", outdir=tmp_dir)
 
