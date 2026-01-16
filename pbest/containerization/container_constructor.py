@@ -36,13 +36,13 @@ def formulate_dockerfile_for_necessary_env(
     pypi_deps = experiment_deps.get_pypi_dependencies()
     for p in range(len(pypi_deps)):
         if p == 0:
-            deps_install_command += f"RUN python3 -m pip install '{pypi_deps[p]}'"
+            deps_install_command += f"RUN micromamba run -p /micromamba_env/runtime_env python3 -m pip install '{pypi_deps[p]}'"
         elif p != len(pypi_deps) - 1:
             deps_install_command += f" '{pypi_deps[p]}'"
         else:
             deps_install_command += f" '{pypi_deps[p]}'\n"
     for c in experiment_deps.get_conda_dependencies():
-        deps_install_command += f"RUN micromamba update -c conda-forge -p /micromamba_env/runtime_env {c} python=3.12\n"
+        deps_install_command += f"RUN micromamba install -c conda-forge -p /micromamba_env/runtime_env {c} python=3.12 --yes\n"
 
     with open(__file__.rsplit(os.sep, maxsplit=1)[0] + f"{os.sep}generic_container.jinja") as f:
         template = Template(f.read())
