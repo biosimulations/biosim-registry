@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -24,7 +25,8 @@ def fully_registered_builder(fully_registered_core) -> CompositeBuilder:
 
 
 def _get_model_path() -> str:
-    return f"{os.getcwd()}/tests/resources/BIOMD0000000012_url.xml"
+    path = Path(__file__).parent.parent
+    return f"{path}/resources/BIOMD0000000012_url.xml"
 
 
 def get_default_config() -> dict[str, Any]:
