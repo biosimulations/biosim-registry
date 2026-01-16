@@ -93,10 +93,15 @@ def run_experiment(prog_args: ExecutionProgramArguments) -> None:
 
         current_dt = datetime.datetime.now()
         date, tz, time = str(current_dt.date()), str(current_dt.tzinfo), str(current_dt.time()).replace(":", "-")
-        if len(query_results) != 0:
-            emitter_results_file_path = os.path.join(prog_args.output_directory, f"results_{date}[{tz}#{time}].pber")
-            with open(emitter_results_file_path, "w") as emitter_results_file:
-                json.dump(query_results, emitter_results_file)
+
+        try:
+            if len(query_results) != 0:
+                emitter_results_file_path = os.path.join(prog_args.output_directory, f"results_{date}[{tz}#{time}].pber")
+                with open(emitter_results_file_path, "w") as emitter_results_file:
+                    json.dump(query_results, emitter_results_file)
+        except TypeError as e:
+            logger.error(f"Tried to save query results to {emitter_results_file_path}: {e}")
+
         prepared_composite.save(filename=f"state_{date}#{time}.pbg", outdir=tmp_dir)
 
         logger.debug(

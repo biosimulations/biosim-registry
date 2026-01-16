@@ -18,8 +18,7 @@ def get_loaded_core() -> ProcessTypes:
     global loaded_core
     if loaded_core is None:
         loaded_core = generate_core()
-        logger.debug(f"Process registry: {loaded_core.process_registry}")
-        logger.debug(f"Registry: {loaded_core.registry}")
+        logger.debug(f"Process registry: {loaded_core.process_registry.registry}")
         for k, i in standard_types.items():
             loaded_core.register(k, i)
     return loaded_core
