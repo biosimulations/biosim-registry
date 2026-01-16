@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import json
+import logging
 import os
 import shutil
 import sys
@@ -11,8 +12,10 @@ from typing import Any
 
 from process_bigraph import Composite, gather_emitter_results
 
-from bsedic.globals import get_loaded_core
-from bsedic.utils.input_types import ExecutionProgramArguments
+from pbest.globals import get_loaded_core, set_logging_config
+from pbest.utils.input_types import ExecutionProgramArguments
+
+logger = logging.getLogger(__name__)
 
 
 def get_program_arguments() -> ExecutionProgramArguments:
@@ -44,6 +47,19 @@ running Process Bigraph Experiments.""",
     )
 
 
+def get_program_env_variables() -> ExecutionProgramArguments | None:
+    pb_input_path = os.getenv("PB_INPUT_FILE_PATH")
+    output_dir = os.getenv("PB_OUTPUT_DIRECTORY")
+    interval = os.getenv("PB_INTERVAL")
+    if pb_input_path is None or output_dir is None or interval is None:
+        return None
+    return ExecutionProgramArguments(
+        input_file_path=pb_input_path,
+        output_directory=Path(output_dir),
+        interval=int(interval),
+    )
+
+
 def get_pb_schema(prog_args: ExecutionProgramArguments, working_dir: str) -> dict[Any, Any]:
     input_file: str | None = None
     if not (prog_args.input_file_path.endswith(".omex") or prog_args.input_file_path.endswith(".zip")):
@@ -66,10 +82,7 @@ def get_pb_schema(prog_args: ExecutionProgramArguments, working_dir: str) -> dic
         return result
 
 
-def run_experiment(prog_args: ExecutionProgramArguments | None = None) -> None:
-    if prog_args is None:
-        prog_args = get_program_arguments()
-
+def run_experiment(prog_args: ExecutionProgramArguments) -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         schema = get_pb_schema(prog_args, tmp_dir)
         core = get_loaded_core()
@@ -80,10 +93,35 @@ def run_experiment(prog_args: ExecutionProgramArguments | None = None) -> None:
 
         current_dt = datetime.datetime.now()
         date, tz, time = str(current_dt.date()), str(current_dt.tzinfo), str(current_dt.time()).replace(":", "-")
-        if len(query_results) != 0:
-            emitter_results_file_path = os.path.join(prog_args.output_directory, f"results_{date}[{tz}#{time}].pber")
-            with open(emitter_results_file_path, "w") as emitter_results_file:
-                json.dump(query_results, emitter_results_file)
+
+        try:
+            if len(query_results) != 0:
+                emitter_results_file_path = os.path.join(
+                    prog_args.output_directory, f"results_{date}[{tz}#{time}].pber"
+                )
+                with open(emitter_results_file_path, "w") as emitter_results_file:
+                    json.dump(query_results, emitter_results_file)
+        except TypeError as e:
+            err_msg = f"Tried to save query results to {emitter_results_file_path}: {e}"
+            logger.exception(err_msg)
+
         prepared_composite.save(filename=f"state_{date}#{time}.pbg", outdir=tmp_dir)
 
+        logger.debug(
+            f"Copying tmpdir contents [{os.listdir(tmp_dir)}] to output directory {prog_args.output_directory}"
+        )
         shutil.copytree(tmp_dir, prog_args.output_directory, dirs_exist_ok=True)
+        logger.debug(f"Contents copied to output directory [{os.listdir(prog_args.output_directory)}]")
+
+
+if __name__ == "__main__":
+    log_level = os.getenv("LOGGER_LEVEL", "INFO")
+    set_logging_config(log_level)
+
+    logger.info("Starting execution...")
+    program_arguments = get_program_env_variables()
+    if program_arguments is None:
+        program_arguments = get_program_arguments()
+    logger.info("Got Program Arguments: " + str(program_arguments))
+    run_experiment(program_arguments)
+    logger.info("Finished executing experiment.")

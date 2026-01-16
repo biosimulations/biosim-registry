@@ -1,6 +1,6 @@
 [project]
-name = "bsedic"
-version = "0.0.1"
+name = "pbest"
+version = "0.1.0"
 description = "BioSim Registry is a project focused on delivering high quality processes and tooling in relation to process bi-graph."
 authors = [{ name = "Center for Reproducable Biological Modeling", email = "evalencia@uchc.edu" }]
 readme = "README.md"
@@ -21,7 +21,7 @@ dependencies = [
     "pandas>=2.3.3",
     # "polars>=1.35.2",
     "process-bigraph==0.0.51",
-#    "bigraph-schema==0.0.77",
+    "bigraph-schema==0.0.77",
     "pydantic>=2.12.3",
     # "python-libsbml>=5.20.5",
     "spython>=0.3.14",
@@ -33,9 +33,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://biosimulators.github.io/bsedic/"
-Repository = "https://github.com/biosimulators/bsedic"
-Documentation = "https://biosimulators.github.io/bsedic/"
+Homepage = "https://github.com/biosimulations/biosim-registry/"
+Repository = "https://github.com/biosimulations/biosim-registry/"
+Documentation = "https://github.com/biosimulations/biosim-registry/"
 
 [dependency-groups]
 dev = [
@@ -49,7 +49,8 @@ dev = [
     "ruff>=0.11.5",
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",
-    "mkdocstrings[python]>=0.26.1"
+    "mkdocstrings[python]>=0.26.1",
+    "docker"
 ]
 
 [build-system]
@@ -57,10 +58,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["bsedic"]
+packages = ["pbest"]
 
 [tool.mypy]
-files = ["bsedic"]
+files = ["pbest"]
 disallow_untyped_defs = true
 disallow_any_unimported = false
 no_implicit_optional = true
@@ -91,6 +92,9 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.deptry.per_rule_ignores]
+DEP002 = ["bigraph-schema"]
 
 [tool.ruff]
 target-version = "py39"
@@ -148,7 +152,7 @@ skip_empty = true
 
 [tool.coverage.run]
 branch = true
-source = ["bsedic"]
+source = ["pbest"]
 
 [tool.uv.sources]
 # biocompose = { git = "https://github.com/vivarium-collective/biocompose", rev = "numerical-types" }
