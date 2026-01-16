@@ -112,7 +112,7 @@ def get_default_config() -> dict[str, Any]:
 def readdy_document() -> dict[str, Any]:
     emitters_from_wires = emitter_from_wires(
         {"particles": ["particles"], "topologies": ["topologies"], "global_time": ["global_time"]},
-        address="local:pb_multiscale_actin.processes.readdy_actin_membrane.SimulariumEmitter",
+        address="local:pb_multiscale_actin.processes.simularium_emitter.SimulariumEmitter",
     )
 
     readd_pbg = {
@@ -125,7 +125,7 @@ def readdy_document() -> dict[str, Any]:
             "outputs": {"particles": ["particles"], "topologies": ["topologies"]},
         },
     }
-    return readd_pbg
+    return {"state": readd_pbg}
 
 
 @pytest.fixture(scope="function", autouse=True)

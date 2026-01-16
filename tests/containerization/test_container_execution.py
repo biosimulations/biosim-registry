@@ -10,6 +10,7 @@ from typing import Any
 
 import docker
 import pytest
+from docker.errors import ContainerError
 
 from pbest.containerization.container_constructor import formulate_dockerfile_for_necessary_env, get_experiment_deps
 from pbest.utils.input_types import ContainerizationEngine, ContainerizationProgramArguments, ContainerizationTypes
@@ -18,7 +19,8 @@ from tests.fixtures.utils import is_docker_present
 from tests.standard_tools.test_comparison import comparison_result_dict_test
 
 
-def build_image_and_run_experiment(input_dir: Path, output_dir: Path, input_file: Path):
+def build_image_and_run_experiment(input_dir: Path, output_dir: Path, input_file: Path, time_to_run: int=1,
+                                   show_logs: bool=False) -> None:
     experiment_deps = get_experiment_deps()
     docker_image_path = f"{input_dir}{os.sep}Dockerfile"
     docker_tag = "test_crbm_containerization"
@@ -53,23 +55,28 @@ def build_image_and_run_experiment(input_dir: Path, output_dir: Path, input_file
 
     # Bind dir with all related files to /experiment
     client = docker.from_env()
-    client.containers.run(
-        image="test_crbm_containerization:latest",
-        remove=True,
-        volumes={
-            input_dir: {"bind": "/experiment/input", "mode": "rw"},
-            output_dir: {"bind": "/experiment/output", "mode": "rw"},
-        },
-        environment={
-            "PB_INPUT_FILE_PATH": f"/experiment/input/{input_file.name}",
-            "PB_OUTPUT_DIRECTORY": "/experiment/output",
-            "LOGGER_LEVEL": "DEBUG",
-            "PB_INTERVAL": 1,
-        },
-        platform="linux/amd64",
-        stderr=True,
-        stdout=True,
-    )
+    try:
+        logs = client.containers.run(
+            image="test_crbm_containerization:latest",
+            remove=True,
+            volumes={
+                input_dir: {"bind": "/experiment/input", "mode": "rw"},
+                output_dir: {"bind": "/experiment/output", "mode": "rw"},
+            },
+            environment={
+                "PB_INPUT_FILE_PATH": f"/experiment/input/{input_file.name}",
+                "PB_OUTPUT_DIRECTORY": "/experiment/output",
+                "LOGGER_LEVEL": "DEBUG",
+                "PB_INTERVAL": time_to_run,
+            },
+            platform="linux/amd64",
+            stderr=True,
+            stdout=True,
+        )
+        if show_logs:
+            print(logs.decode("utf-8"))
+    except ContainerError as e:
+        print(e.stderr)
 
 
 @pytest.mark.skipif(not is_docker_present(), reason="docker daemon is not running")
@@ -107,14 +114,16 @@ def test_execution_of_readdy_container(readdy_document: dict[str, Any]) -> None:
         os.mkdir(output_dir)
 
         readdy_pbif = Path(f"{input_dir}{os.sep}readdy.pbif")
-        readdy_document["emitter"]["config"]["output_dir"] = "/experiment/output"
+        readdy_document["state"]["emitter"]["config"]["output_dir"] = "/experiment/output"
 
         with open(readdy_pbif, "w") as f:
             readdy_state_str = json.dumps(readdy_document)
             f.write(readdy_state_str)
 
-        build_image_and_run_experiment(input_dir, output_dir, readdy_pbif)
+        build_image_and_run_experiment(input_dir, output_dir, readdy_pbif, time_to_run=3,
+                                       show_logs=True)
 
-        result_file = next(k for k in os.listdir(output_dir) if k == "readdy_result.simularium")
+        result_file = next(k for k in os.listdir(output_dir) if ".simularium" in k)
 
-        print(result_file)
+        assert result_file != ""
+        assert "readdy_result" in result_file
