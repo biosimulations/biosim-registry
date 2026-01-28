@@ -1,32 +1,27 @@
+# mypy: disable-error-code="no-untyped-def"
 import os.path
+from typing import ClassVar
 
-import numpy as np
 import basico as bsc
-import pandas as pd
-from basico.model_info import T
-from process_bigraph import Process, Composite, pf, Step
 import matplotlib.pyplot as plt
-from roadrunner import RoadRunner
+import pandas as pd
 import tellurium as te
+from process_bigraph import Step
+from roadrunner import RoadRunner
 
 
 class Legacy_RunBasicSBMLTimeCourseSimulation(Step):
-    config_schema = {
-        'output_dir': {
-            '_type': 'string',
-            '_default': ''
-        }
-    }
+    config_schema: ClassVar[dict] = {"output_dir": {"_type": "string", "_default": ""}}
 
     def __init__(self, config, core):
         super().__init__(config, core)
 
-
     def initialize(self, config):
         ######################
-        if config['output_dir'] is None:
-            raise ValueError('`output_dir` cannot be None')
-        output_dir: str = os.path.abspath(os.path.expanduser(config['output_dir']))
+        if config["output_dir"] is None:
+            msg = "`output_dir` cannot be None"
+            raise ValueError(msg)
+        output_dir: str = os.path.abspath(os.path.expanduser(config["output_dir"]))
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         self.output_dir = output_dir
@@ -35,7 +30,7 @@ class Legacy_RunBasicSBMLTimeCourseSimulation(Step):
         return
 
     def update(self, state):
-        sbml_file_path: str = state['sbml_file_path']
+        sbml_file_path: str = state["sbml_file_path"]
         num_data_points: int = state["num_data_points"]
         starting_time: float = state["starting_time"]
         duration: float = state["duration"]
@@ -48,7 +43,7 @@ class Legacy_RunBasicSBMLTimeCourseSimulation(Step):
 
     def inputs(self):
         return {
-            "sbml_file_path" : "string",
+            "sbml_file_path": "string",
             "num_data_points": "integer",
             "starting_time": "float",
             "duration": "float",
@@ -57,25 +52,20 @@ class Legacy_RunBasicSBMLTimeCourseSimulation(Step):
     def outputs(self):
         return {}
 
+
 class Legacy_RunBasicCPSTimeCourseSimulation(Step):
     def update(self, state):
         return {}
 
     def inputs(self):
-        return {
-            "cps_file_path" : "string"
-        }
+        return {"cps_file_path": "string"}
 
     def outputs(self):
         return {}
 
+
 class TelluriumTimeCourseStep(Step):
-    config_schema = {
-        'output_dir': {
-            '_type': 'string',
-            '_default': ''
-        }
-    }
+    config_schema: ClassVar[dict] = {"output_dir": {"_type": "string", "_default": ""}}
 
     def __init__(self, config, core):
         super().__init__(config, core)
@@ -83,13 +73,14 @@ class TelluriumTimeCourseStep(Step):
         self.output_dir: str = ""
 
     def initialize(self, config):
-        sbml_file_path: str = os.path.abspath(os.path.expanduser(config['sbml_file_path']))
+        sbml_file_path: str = os.path.abspath(os.path.expanduser(config["sbml_file_path"]))
         if not os.path.exists(sbml_file_path):
             raise FileNotFoundError(sbml_file_path)
 
-        if config['output_dir'] is None:
-            raise ValueError('`output_dir` cannot be None')
-        output_dir = os.path.abspath(os.path.expanduser(config['output_dir']))
+        if config["output_dir"] is None:
+            msg = "`output_dir` cannot be None"
+            raise ValueError(msg)
+        output_dir = os.path.abspath(os.path.expanduser(config["output_dir"]))
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         self.output_dir = output_dir

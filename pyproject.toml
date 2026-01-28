@@ -28,6 +28,7 @@ dependencies = [
     "copasi-basico",
     "tellurium>=2.2.11.1",
     "libroadrunner",
+    "matplotlib",
     "python-copasi"
     # "vivarium-interface>=0.0.5",
 ]
