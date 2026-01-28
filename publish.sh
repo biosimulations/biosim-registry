@@ -1,5 +1,13 @@
 #!/bin/bash
 
+
+if [ ! -z "$(git status --untracked-files=no --porcelain)" ]; then
+    echo "You have changes that have yet to be committed."
+    echo "Aborting."
+    exit 1
+fi
+
+
 if [ -d "dist" ]; then
   rm -rf ./dist
 fi
@@ -11,8 +19,11 @@ NEW_VERSION=${NEW_VERSION:-${VERSION}}
 uv version ${NEW_VERSION}
 uv build
 
+git add --all
+git commit -m "Release Version: ${NEW_VERSION}"
 git tag -a ${NEW_VERSION} -m "Release version: ${NEW_VERSION}"
 git push origin ${NEW_VERSION}
+git push
 
 TOKEN=${PYPI_TOKEN-"nope"}
 if [[ ${TOKEN} == "nope" ]]; then
