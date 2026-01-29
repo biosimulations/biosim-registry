@@ -1,7 +1,9 @@
 from typing import Any, ClassVar
 
 import tellurium as te
-from process_bigraph import ProcessTypes, Step
+from bigraph_schema import allocate_core
+from process_bigraph import Step
+from bigraph_schema.core import Core
 from roadrunner import RoadRunner
 
 from pbest.registry.utils import model_path_resolution
@@ -216,7 +218,7 @@ def run_ss_test(core: Any) -> None:
 
 
 if __name__ == "__main__":
-    core = ProcessTypes()
-    core.register_process("tellurium_utc", TelluriumUTCStep)
+    core: Core = allocate_core()
+    core.register_link("tellurium_utc", TelluriumUTCStep)
     run_utc_test(core)
     run_ss_test(core)
