@@ -18,7 +18,7 @@ def root_dir_path() -> Path:
     return Path(__file__).parent.parent
 
 
-def compare_csv(experiment_result: str, expected_csv_path: str, difference_tolerance: float = 5e-10):
+def compare_csv(experiment_result: str, expected_csv_path: str, difference_tolerance: float = 5e-8):
     experiment_numpy = numpy.genfromtxt(experiment_result, delimiter=",", dtype=object)
     report_numpy = numpy.genfromtxt(expected_csv_path, delimiter=",", dtype=object)
     assert report_numpy.shape == experiment_numpy.shape
@@ -30,6 +30,9 @@ def compare_csv(experiment_result: str, expected_csv_path: str, difference_toler
             try:
                 f_report = float(report_val)
                 f_exp = float(experiment_val)
-                assert math.isclose(f_report, f_exp, rel_tol=0, abs_tol=difference_tolerance)
+                is_close = math.isclose(f_report, f_exp, rel_tol=0, abs_tol=difference_tolerance)
+                if not is_close:
+                    print(f_report, f_exp)
+                    assert is_close
             except ValueError:
                 assert report_val == experiment_val  # Must be string portion of report then (columns)

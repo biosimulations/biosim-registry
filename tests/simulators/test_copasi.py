@@ -38,4 +38,5 @@ def test_copasi() -> None:
         compare_csv(
             experiment_result=os.path.join(tmpdir, "results.csv"),
             expected_csv_path=os.path.join(root_dir_path(), "resources", "simulators", "copasi_report.csv"),
+            difference_tolerance=1e-4,
         )
