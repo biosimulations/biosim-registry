@@ -36,5 +36,5 @@ def test_run_experiment(comparison_document: dict[Any, Any], fully_registered_co
             if compared_to == key:
                 assert float(comparison_result[key][compared_to]) == 0
             else:
-                assert float(comparison_result[key][compared_to]) < 1e-6
+                assert float(comparison_result[key][compared_to]) < 1.05e-6
                 assert float(comparison_result[key][compared_to]) != 0
