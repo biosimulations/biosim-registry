@@ -60,9 +60,18 @@ def get_program_env_variables() -> ExecutionProgramArguments | None:
     )
 
 
+def replace_relative_pbif_paths(dic: dict[Any, Any], root_dir: str) -> None:
+    for k, v in dic.items():
+        if isinstance(v, dict):
+            replace_relative_pbif_paths(v, root_dir)
+        elif k == "model_source" or k == "output_dir":
+            dic[k] = os.path.join(root_dir, v)
+
+
 def get_pb_schema(prog_args: ExecutionProgramArguments, working_dir: str) -> dict[Any, Any]:
     input_file: str | None = None
-    if not (prog_args.input_file_path.endswith(".omex") or prog_args.input_file_path.endswith(".zip")):
+    is_omex = prog_args.input_file_path.endswith(".omex") or prog_args.input_file_path.endswith(".zip")
+    if not is_omex:
         input_file = os.path.join(working_dir, os.path.basename(prog_args.input_file_path))
         shutil.copyfile(prog_args.input_file_path, input_file)
     else:
@@ -79,6 +88,8 @@ def get_pb_schema(prog_args: ExecutionProgramArguments, working_dir: str) -> dic
         raise FileNotFoundError(err)
     with open(input_file) as input_data:
         result: dict[Any, Any] = json.load(input_data)
+        if is_omex:
+            replace_relative_pbif_paths(result, working_dir)
         return result
 
 

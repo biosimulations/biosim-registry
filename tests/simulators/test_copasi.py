@@ -40,3 +40,19 @@ def test_copasi() -> None:
             expected_csv_path=os.path.join(root_dir_path(), "resources", "simulators", "copasi_report.csv"),
             difference_tolerance=1e-4,
         )
+
+
+def test_copasi_omex() -> None:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_path = root_dir_path() / "resources" / "simulators" / "copasi_phase_cycle.omex"
+        run_experiment(
+            prog_args=ExecutionProgramArguments(
+                input_file_path=str(input_path), output_directory=Path(tmpdir), interval=1
+            )
+        )
+
+        compare_csv(
+            experiment_result=os.path.join(tmpdir, "results.csv"),
+            expected_csv_path=os.path.join(root_dir_path(), "resources", "simulators", "copasi_report.csv"),
+            difference_tolerance=1e-4,
+        )
