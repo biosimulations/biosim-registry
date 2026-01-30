@@ -20,7 +20,11 @@ from tests.standard_tools.test_comparison import comparison_result_dict_test
 
 
 def build_image_and_run_experiment(
-    input_dir: Path, output_dir: Path, input_file: Path, time_to_run: int = 1, show_logs: bool = False
+    input_dir: Path,
+    output_dir: Path,
+    input_file: Path,
+    time_to_run: int = 1,
+    show_logs: bool = False,
 ) -> None:
     experiment_deps = get_experiment_deps()
     docker_image_path = f"{input_dir}{os.sep}Dockerfile"
