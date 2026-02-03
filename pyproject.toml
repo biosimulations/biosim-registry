@@ -29,8 +29,9 @@ dependencies = [
     "tellurium>=2.2.11.1",
     "libroadrunner",
     "matplotlib",
-    "python-copasi"
     # "vivarium-interface>=0.0.5",
+    "python-copasi",
+    "compose-api-client==0.1.2",
 ]
 
 [project.urls]
