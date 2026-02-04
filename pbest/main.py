@@ -130,7 +130,9 @@ def run_experiment(prog_args: ExecutionProgramArguments) -> None:
         logger.debug(f"Contents copied to output directory [{os.listdir(prog_args.output_directory)}]")
 
 
-async def run_remote_experiment(prog_args: ExecutionProgramArguments, client: Client = None) -> SimulationExperiment:
+async def run_remote_experiment(
+    prog_args: ExecutionProgramArguments, client: Client | None = None
+) -> SimulationExperiment:
     if client is None:
         client = compose_api_client.Client(base_url="https://compose.cam.uchc.edu")
 
@@ -140,6 +142,8 @@ async def run_remote_experiment(prog_args: ExecutionProgramArguments, client: Cl
 
     with open(os.path.join(prog_args.output_directory, "output.zip"), "wb") as output_file:
         output_file.write(result.content)
+
+    return sim_id
 
 
 if __name__ == "__main__":

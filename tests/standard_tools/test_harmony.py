@@ -108,17 +108,15 @@ async def test_remote_parameter_scan(fully_registered_builder: CompositeBuilder)
         with open(input_path, "w") as input_file:
             json.dump({"state": fully_registered_builder.state}, input_file)
 
-        sim_id = await run_remote_experiment(
+        await run_remote_experiment(
             prog_args=ExecutionProgramArguments(input_file_path=input_path, interval=1, output_directory=Path(temp_dir))
         )
 
         with zipfile.ZipFile(os.path.join(temp_dir, "output.zip")) as output:
             output.extractall(temp_dir)
 
-        result_pbg = [k for k in os.listdir(temp_dir) if ".pbg" in k][0]
+        result_pbg = next(k for k in os.listdir(temp_dir) if ".pbg" in k)
 
-        with open(os.path.join(temp_dir, result_pbg), "r") as result_file:
+        with open(os.path.join(temp_dir, result_pbg)) as result_file:
             json_data = json.load(result_file)
-            perform_parameter_scan_comparison(json_data['state']['parameter_scan_0']['results'])
-
-
+            perform_parameter_scan_comparison(json_data["state"]["parameter_scan_0"]["results"])

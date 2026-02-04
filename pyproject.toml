@@ -32,6 +32,7 @@ dependencies = [
     # "vivarium-interface>=0.0.5",
     "python-copasi",
     "compose-api-client==0.1.2",
+    "httpx>=0.28.1",
 ]
 
 [project.urls]
@@ -91,6 +92,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = "basico.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "compose_api_client.*"
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
