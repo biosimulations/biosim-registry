@@ -51,7 +51,6 @@ def formulate_dockerfile_for_necessary_env(
     with open(__file__.rsplit(os.sep, maxsplit=1)[0] + f"{os.sep}generic_container.jinja") as f:
         template = Template(f.read())
         templated_container = template.render(
-            additional_execution_tools=experiment_deps.manager_installation_string(),
             dependencies_to_install=deps_install_command,
             micromamba_env_path=micromamba_env_path,
         )
