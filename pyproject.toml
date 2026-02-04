@@ -48,6 +48,7 @@ dev = [
     "mypy>=0.991",
     "pandas-stubs",
     "pytest-cov>=4.0.0",
+    "pytest-asyncio>=1.0.0,<2",
     "ruff>=0.11.5",
     "mkdocs>=1.4.2",
     "mkdocs-material>=8.5.10",

@@ -10,6 +10,11 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+import compose_api_client
+from compose_api_client.api.simulation import run_simulation_and_wait
+from compose_api_client.models import SimulationExperiment
+from compose_api_client.types import File
+from httpx import Client
 from process_bigraph import Composite, gather_emitter_results
 
 from pbest.globals import get_loaded_core, set_logging_config
@@ -123,6 +128,18 @@ def run_experiment(prog_args: ExecutionProgramArguments) -> None:
         )
         shutil.copytree(tmp_dir, prog_args.output_directory, dirs_exist_ok=True)
         logger.debug(f"Contents copied to output directory [{os.listdir(prog_args.output_directory)}]")
+
+
+async def run_remote_experiment(prog_args: ExecutionProgramArguments, client: Client = None) -> SimulationExperiment:
+    if client is None:
+        client = compose_api_client.Client(base_url="https://compose.cam.uchc.edu")
+
+    with open(prog_args.input_file_path, "rb") as input_file:
+        sent_file = File(file_name="experiment.pbif", payload=input_file)
+        result, sim_id = await run_simulation_and_wait.async_call(experiment_file=sent_file, client=client)
+
+    with open(os.path.join(prog_args.output_directory, "output.zip"), "wb") as output_file:
+        output_file.write(result.content)
 
 
 if __name__ == "__main__":
